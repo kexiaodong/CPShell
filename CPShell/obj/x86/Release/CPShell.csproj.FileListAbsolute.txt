@@ -1,0 +1,11 @@
+C:\BaiduNetdiskDownload\CPShell\CPShell\bin\Release\CPShell.exe.config
+C:\BaiduNetdiskDownload\CPShell\CPShell\bin\Release\CPShell.exe
+C:\BaiduNetdiskDownload\CPShell\CPShell\bin\Release\CPShell.pdb
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.ConnectionForm.resources
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.Form1.resources
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.Properties.Resources.resources
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.QuickForm.resources
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.csproj.GenerateResource.Cache
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.exe
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.pdb
+C:\BaiduNetdiskDownload\CPShell\CPShell\obj\x86\Release\CPShell.csprojResolveAssemblyReference.cache
