@@ -53,9 +53,7 @@ namespace CPShell
             toolStripButton1_Click(null, null);
 
             m_nodes["Servers"] = new TreeNode("Servers");
-            m_nodes["Windows"] = new TreeNode("Windows");
             this.treeView1.Nodes.Add((TreeNode)m_nodes["Servers"]);
-            this.treeView1.Nodes.Add((TreeNode)m_nodes["Windows"]);
 
             loadServer();
             loadKey();
@@ -443,16 +441,23 @@ namespace CPShell
 
             // 嵌入到parentHandle指定的句柄中
             IntPtr appWin = process.MainWindowHandle;
-            SetParent(appWin, this.splitContainer1.Panel1.Handle);
-            MoveWindow(appWin, 0, 0, 1024, 600, true);
+            SetParent(appWin, this.panel2.Handle);
+            MoveWindow(appWin, 0, 0, 1280, 600, true);
 
             string windowName = (++m_windowIndex) + " - " + puttyData.name;
-            WindowConnection winConnection = new WindowConnection(windowName, puttyData, appWin);
+
+            TabPage tabPage = new System.Windows.Forms.TabPage();
+            tabPage.Location = new System.Drawing.Point(0, 0);
+            tabPage.Name = windowName + "_1";
+            tabPage.Padding = new System.Windows.Forms.Padding(2);
+            tabPage.Size = new System.Drawing.Size(511, 0);
+            tabPage.TabIndex = 1;
+            tabPage.Text = windowName;
+            tabPage.UseVisualStyleBackColor = true;
+            this.tabControl1.TabPages.Add(tabPage);
+
+            WindowConnection winConnection = new WindowConnection(windowName, puttyData, appWin, tabPage);
             m_window[windowName] = winConnection;
-            TreeNode windowNode = new TreeNode(windowName);
-            TreeNode parent = ((TreeNode)m_nodes["Windows"]);
-            parent.Nodes.Add(windowNode);
-            parent.ExpandAll();
 
             if (puttyData.quickType == null)
             {
@@ -536,30 +541,34 @@ namespace CPShell
                     if (winConnection.hWnd != m_lastWin)
                     {
                         m_lastWin = winConnection.hWnd;
+                        tabControl1.SelectedTab = winConnection.tabPage;
                     }
                 }
                 else if (IsWindow(winConnection.hWnd) == 0)
                 {
-                    TreeNode parent = (TreeNode)m_nodes["Windows"];
-                    for (int i = 0; i < parent.Nodes.Count; i++)
-                    {
-                        if (parent.Nodes[i].Text == winConnection.name)
-                        {
-                            parent.Nodes.RemoveAt(i);
-                            break;
-                        }
-                    }
-                    m_window.Remove(key);
-                    if (winConnection.hWnd == m_lastWin)
-                    {
-                        m_lastWin = IntPtr.Zero;
-                    }
+                    m_lastWin = IntPtr.Zero;
+                    tabControl1.TabPages.Remove(winConnection.tabPage);
                 }
             }
-
         }
 
+        private void tabControl1_Click(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedIndex != -1)
+            {
+                WindowConnection windowData = (WindowConnection)m_window[tabControl1.TabPages[tabControl1.SelectedIndex].Text];
+                if (windowData != null)
+                {
+                    SetForegroundWindow(windowData.hWnd);
+                    m_lastWin = windowData.hWnd;
+                }
+            }
+        }
         #endregion
+
+  
+
+
 
 
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
+using System.Windows.Forms;
 
 namespace CPShell
 {
@@ -27,11 +28,13 @@ namespace CPShell
         public string name;
         public ConnectionData connection;
         public IntPtr hWnd;
-        public WindowConnection(string name, ConnectionData connection, IntPtr hWnd)
+        public TabPage tabPage;
+        public WindowConnection(string name, ConnectionData connection, IntPtr hWnd, TabPage tabPage)
         {
             this.name = name;
             this.connection = connection;
             this.hWnd = hWnd;
+            this.tabPage = tabPage;
         }
     }
 
