@@ -17,11 +17,6 @@ namespace CPShell
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
         #region WINAPI
         [DllImport("user32.dll")]
         public static extern int SetParent(IntPtr hWndChild, IntPtr hWndParent);
@@ -44,9 +39,16 @@ namespace CPShell
 
         [DllImport("User32.dll")]
         public static extern int IsWindow(IntPtr hWnd);
-        #endregion
 
-                
+        [DllImport("user32.dll", EntryPoint = "ShowWindow", SetLastError = true)]
+        static extern int ShowWindow(IntPtr hWnd, uint nCmdShow);
+        #endregion
+        
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             this.splitContainer1.Panel2MinSize = 0;
@@ -74,7 +76,63 @@ namespace CPShell
             }
         }
 
-        
+        private void layoutButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int index = 0;
+                int count = m_window.Keys.Count;
+                int width = 0;
+                int height = 0;
+                switch (count)
+                {
+                    case 2:
+                        width = this.Width - this.treeView1.Width - 10;
+                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
+                        foreach (string key1 in m_window.Keys)
+                        {
+                            WindowConnection windowData = (WindowConnection)m_window[key1];
+                            ShowWindow(windowData.hWnd, 1);
+                            MoveWindow(windowData.hWnd, 0, index * height, width, height, true);                            
+                            index++;
+                        }
+                        break;
+                    case 3:
+                        width = (this.Width - this.treeView1.Width - 10)/2;
+                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
+                        foreach (string key1 in m_window.Keys)
+                        {
+                            WindowConnection windowData = (WindowConnection)m_window[key1];
+                            ShowWindow(windowData.hWnd, 1);
+                            MoveWindow(windowData.hWnd, index % 2 * width, index / 2 * height, (index / 2 + 1) * width, height, true);                                                       
+                            index++;
+                        }
+                        break;
+                    case 4:
+                        width = (this.Width - this.treeView1.Width - 10)/2;
+                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
+                        foreach (string key1 in m_window.Keys)
+                        {
+                            WindowConnection windowData = (WindowConnection)m_window[key1];
+                            ShowWindow(windowData.hWnd, 1);
+                            MoveWindow(windowData.hWnd, index % 2 * width, index / 2 * height, width, height, true);                                                       
+                            index++;
+                        }
+                        break;
+                    default:
+                        foreach (string key1 in m_window.Keys)
+                        {
+                            WindowConnection windowData = (WindowConnection)m_window[key1];
+                            ShowWindow(windowData.hWnd, 1);
+                        }
+                        break;
+                }             
+
+            }
+            catch (Exception exp)
+            {
+            }
+        }
 
         #region Key
         private ArrayList m_quickDatas = new ArrayList();
@@ -96,7 +154,7 @@ namespace CPShell
 
         private void reloadKeyButton()
         {
-            while (this.toolStrip1.Items.Count > 4)
+            while (this.toolStrip1.Items.Count > 5)
             {
                 this.toolStrip1.Items.RemoveAt(this.toolStrip1.Items.Count - 1);
             }
@@ -389,9 +447,9 @@ namespace CPShell
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
             WindowConnection win = getLastWindow();
+            string param = "";
             if (win != null)
-            {
-                string param = "";
+            {                
                 if (win.connection.password.Trim() != "")
                 {
                     param = String.Format("scp://{0}:\"{1}\"@{2}:{3}",
@@ -442,7 +500,8 @@ namespace CPShell
             // 嵌入到parentHandle指定的句柄中
             IntPtr appWin = process.MainWindowHandle;
             SetParent(appWin, this.panel2.Handle);
-            MoveWindow(appWin, 0, 0, 1280, 600, true);
+            MoveWindow(appWin, 0, 0, 1024, 600, true);
+            ShowWindow(appWin, 3);
 
             string windowName = (++m_windowIndex) + " - " + puttyData.name;
 
@@ -458,6 +517,7 @@ namespace CPShell
 
             WindowConnection winConnection = new WindowConnection(windowName, puttyData, appWin, tabPage);
             m_window[windowName] = winConnection;
+            m_lastWin = appWin;
 
             if (puttyData.quickType == null)
             {
@@ -540,14 +600,15 @@ namespace CPShell
                 {
                     if (winConnection.hWnd != m_lastWin)
                     {
-                        m_lastWin = winConnection.hWnd;
-                        tabControl1.SelectedTab = winConnection.tabPage;
+                        m_lastWin = winConnection.hWnd;                       
                     }
+                    tabControl1.SelectedTab = winConnection.tabPage; 
                 }
                 else if (IsWindow(winConnection.hWnd) == 0)
                 {
                     m_lastWin = IntPtr.Zero;
                     tabControl1.TabPages.Remove(winConnection.tabPage);
+                    m_window.Remove(key);
                 }
             }
         }
@@ -565,10 +626,6 @@ namespace CPShell
             }
         }
         #endregion
-
-  
-
-
 
 
     }
