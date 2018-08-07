@@ -168,8 +168,14 @@ namespace CPShell
                 tempButton.Name = "toolStripButton" + (m_keyButtonIndex++);
                 tempButton.Text = quickData.name;
                 tempButton.Click += new EventHandler(tempButton_Click);
+                tempButton.MouseMove += new MouseEventHandler(tempButton_MouseMove);
                 this.toolStrip1.Items.Add(tempButton);
             }            
+        }
+
+        void tempButton_MouseMove(object sender, MouseEventArgs e)
+        {
+            this.Focus();
         }
 
         void tempButton_Click(object sender, EventArgs e)
@@ -195,6 +201,7 @@ namespace CPShell
                     int keyCode = 111 + index;
                     SendMessage(m_lastWin, WM_KEYDOWN, keyCode, 0);
                     SendMessage(m_lastWin, WM_KEYUP, keyCode, 0);
+                    SetForegroundWindow(m_lastWin);
                 }
             }
         }

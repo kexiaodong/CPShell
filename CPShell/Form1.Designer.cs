@@ -88,6 +88,7 @@
             this.toolStripButton2.Size = new System.Drawing.Size(23, 22);
             this.toolStripButton2.Text = "Winscp";
             this.toolStripButton2.Click += new System.EventHandler(this.toolStripButton2_Click);
+            this.toolStripButton2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.tempButton_MouseMove);
             // 
             // toolStripSeparator1
             // 
