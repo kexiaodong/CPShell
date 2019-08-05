@@ -51,6 +51,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AfterLogin.cs" />
+    <Compile Include="ColorSelectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColorSelectForm.Designer.cs">
+      <DependentUpon>ColorSelectForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ConnectionForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -72,6 +78,9 @@
     <Compile Include="QuickForm.Designer.cs">
       <DependentUpon>QuickForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ColorSelectForm.resx">
+      <DependentUpon>ColorSelectForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ConnectionForm.resx">
       <DependentUpon>ConnectionForm.cs</DependentUpon>
     </EmbeddedResource>

@@ -10,7 +10,7 @@ namespace CPShell
     [Serializable]
     public class ConnectionData
     {
-        public string name;
+        public string name = "";
         public string ip;
         public string port;
         public string protocol;
@@ -21,6 +21,24 @@ namespace CPShell
         public string quickType;
         public string command;
         public string waitTime;
+        public string color = "0";
+        public override string ToString()
+        {
+            return String.Format("name={0}\nip={1}\nport={2}\nprotocol={3}\nusername={4}\npassword={5}\nkeyfile={6}\nparent={7}\nquickType={8}\ncommand={9}\nwaitTime={10}\ncolor={11}\n",
+                name,
+                ip,
+                port,
+                protocol,
+                username,
+                password,
+                keyfile,
+                parent,
+                quickType,
+                command.Replace("\r", "").Replace("\n", "[ENTER]"),
+                waitTime,
+                color);
+        }
+
     }
 
     class WindowConnection
@@ -29,12 +47,14 @@ namespace CPShell
         public ConnectionData connection;
         public IntPtr hWnd;
         public TabPage tabPage;
-        public WindowConnection(string name, ConnectionData connection, IntPtr hWnd, TabPage tabPage)
+        public string panel;
+        public WindowConnection(string name, ConnectionData connection, IntPtr hWnd, TabPage tabPage, string panel)
         {
             this.name = name;
             this.connection = connection;
             this.hWnd = hWnd;
             this.tabPage = tabPage;
+            this.panel = panel;
         }
     }
 

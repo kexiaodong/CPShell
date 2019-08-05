@@ -374,6 +374,10 @@ int readScript()
 		{
 			line[len - 1] = 0;
 		}
+        if (strncmp(line, "[DEFAULT-COLOR=", 15) == 0)
+        {
+            continue;
+        }
 		strcpy(m_script[m_script_len], line);
 		m_script_len++;
 		if (m_script_len >= 1000)
@@ -464,6 +468,10 @@ DWORD WINAPI run_script_thread(LPVOID _pts)
 					for (i = 0; i <len; i++)
 					{
 						if (m_script[k][i] == 10)
+						{
+							continue;
+						}
+                        if (m_script[k][0] == 32)
 						{
 							continue;
 						}

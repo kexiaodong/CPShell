@@ -159,11 +159,65 @@ static int cmdline_check_unavailable(int flag, const char *p)
     if (need_save < 0) return x; \
 } while (0)
 
+void set_color(char *value, Conf *conf)
+{
+	int c0, c1, c2, i;
+    char **color = NULL;
+    char * color0[] = { //black
+    	"187,187,187", "255,255,255", "0,0,0", "85,85,85", "0,0,0",
+		"0,255,0", "0,0,0", "85,85,85", "187,0,0", "255,85,85",
+		"0,187,0", "85,255,85", "187,187,0", "255,255,85", "162,162,255",
+		"162,162,255", "187,0,187", "255,85,255", "0,187,187",
+		"85,255,255", "187,187,187", "255,255,255"
+    };
+    char * color1[] = { //white
+        "68,68,68", "0,0,0", "255,255,255", "170,170,170", "255,255,255",
+		"255,0,255", "255,255,255", "170,170,170", "68,255,255", "0,170,170",
+		"255,68,255", "170,0,170", "68,68,255", "0,0,170", "51,51,255",
+		"51,51,255", "68,255,68", "0,170,0", "255,68,68",
+		"170,0,0", "68,68,68", "0,0,0"
+	};
+    char * color2[] = { //yellow
+         "68,68,68", "0,0,0", "255,255,229", "85,85,85", "255,255,229",
+		"0,255,0", "255,255,229", "85,85,85", "187,0,0", "255,85,85",
+		"0,187,0", "85,255,85", "187,187,0", "255,255,85", "51,51,255",
+		"51,51,255", "187,0,187", "255,85,255", "0,187,187",
+		"0,203,204", "68,68,68", "0,0,0"
+	};
+    char * color3[] = { //green
+    	"0,230,0", "0,255,0", "0,0,0", "85,85,85", "0,0,0",
+		"255,0,255", "0,0,0", "85,85,85", "187,0,0", "255,85,85",
+		"0,187,0", "85,255,85", "187,187,0", "255,255,85", "162,162,255",
+		"162,162,255", "187,0,187", "255,85,255", "0,187,187",
+		"85,255,255", "0,230,0", "0,255,0"
+    };
+    if (!strcmp(value, "0")) {
+        color = color0;
+    }
+    if (!strcmp(value, "1")) {
+        color = color1;
+    }
+    if (!strcmp(value, "2")) {
+        color = color2;
+    }
+    if (!strcmp(value, "3")) {
+        color = color3;
+    }
+    if (color != NULL) {
+        for (i = 0; i < 22; i++) {
+	        if (sscanf(color[i], "%d,%d,%d", &c0, &c1, &c2) == 3) {
+		        conf_set_int_int(conf, CONF_colours, i*3+0, c0);
+		        conf_set_int_int(conf, CONF_colours, i*3+1, c1);
+		        conf_set_int_int(conf, CONF_colours, i*3+2, c2);
+	        }
+        }
+    }
+}
+
 int cmdline_process_param(const char *p, char *value,
                           int need_save, Conf *conf)
 {
     int ret = 0;
-
     if (!strcmp(p, "-load")) {
 	RETURN(2);
 	/* This parameter must be processed immediately rather than being
@@ -171,6 +225,12 @@ int cmdline_process_param(const char *p, char *value,
 	do_defaults(value, conf);
 	loaded_session = TRUE;
 	cmdline_session_name = dupstr(value);
+	return 2;
+    }
+    if (!strcmp(p, "-color")) {
+	RETURN(2);
+	/* set color. */
+    set_color(value, conf);
 	return 2;
     }
     if (!strcmp(p, "-ssh")) {

@@ -23,19 +23,46 @@ namespace CPShell
         string waitTime = "";
         IntPtr appWin;
 
-        public AfterLogin(IntPtr appWin, string scriptType, ArrayList quickDatas, string waitTime)
+        public AfterLogin(IntPtr appWin, string scriptType, string command, ArrayList quickDatas, string waitTime)
         {
             this.appWin = appWin;
             this.scriptType = scriptType;
+            this.command = command;
             this.quickDatas = quickDatas;
             this.waitTime = waitTime;
         }
 
-        public AfterLogin(IntPtr appWin, string command, string waitTime)
+        private void execQuick(String scriptType)
         {
-            this.appWin = appWin;
-            this.command = command;
-            this.waitTime = waitTime;
+            int index = -1;
+            string line = "";
+            for (int i = 0; i < quickDatas.Count; i++)
+            {
+                QuickData data = (QuickData)quickDatas[i];
+                if (data.name == scriptType)
+                {
+                    index = i + 1;
+                    line = data.data;
+                }
+            }
+            if (index != -1)
+            {
+                if (index <= 25)
+                {
+                    int keyCode = 111 + index;
+                    SendMessage(appWin, WM_KEYDOWN, keyCode, 0);
+                    SendMessage(appWin, WM_KEYUP, keyCode, 0);
+                }
+                else
+                {
+                    for (int i = 0; i < line.Length; i++)
+                    {
+                        char c = line[i];
+                        SendMessage(appWin, WM_CHAR, c, 0);
+                        Thread.Sleep(30);
+                    }
+                }
+            }
         }
 
         public void run()
@@ -55,21 +82,7 @@ namespace CPShell
             //send FX
             if (this.scriptType != null && quickDatas != null)
             {
-                int index = -1;
-                for (int i = 0; i < quickDatas.Count; i++)
-                {
-                    QuickData data = (QuickData)quickDatas[i];
-                    if (data.name == scriptType)
-                    {
-                        index = i + 1;
-                    }
-                }
-                if (index != -1)
-                {
-                    int keyCode = 111 + index;
-                    SendMessage(appWin, WM_KEYDOWN, keyCode, 0);
-                    SendMessage(appWin, WM_KEYUP, keyCode, 0);
-                }
+                execQuick(this.scriptType);
             }
             //send Command
             else if (this.command != null)
@@ -77,6 +90,13 @@ namespace CPShell
                 string[] array = this.command.Replace("\r", "").Split('\n');
                 foreach (string line in array)
                 {
+                    if (line.StartsWith("CALL "))
+                    {
+                        string name = line.Substring(5, line.Length - 5).Trim();
+                        execQuick(name);
+                        break;
+                    }
+
                     for (int i = 0; i < line.Length; i++)
                     {
                         char c = line[i];

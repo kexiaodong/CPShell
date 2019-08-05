@@ -30,6 +30,12 @@ namespace CPShell
         [DllImport("user32.dll", EntryPoint = "SendMessage")]
         private static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
 
+        [DllImport("user32.dll", CharSet=CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hwnd, UInt32 wMsg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError=true)]
+        static extern IntPtr SetFocus(IntPtr hWnd);
+
         public const int WM_CHAR = 0x0102;
         public const int WM_KEYDOWN = 0x100;
         public const int WM_KEYUP = 0x101;
@@ -42,24 +48,50 @@ namespace CPShell
 
         [DllImport("user32.dll", EntryPoint = "ShowWindow", SetLastError = true)]
         static extern int ShowWindow(IntPtr hWnd, uint nCmdShow);
+
+        const UInt32 WM_CLOSE = 0x0010;
         #endregion
-        
+
+        private TreeNode m_rootNode;
+        private Hashtable m_nodes = new Hashtable();
+        private Hashtable m_server = new Hashtable();
+        private ArrayList m_quickDatas = new ArrayList();
+        private int m_keyButtonIndex = 0;
+        private Hashtable m_window = new Hashtable();
+        private int m_windowIndex = 0;
+        private IntPtr m_lastWin = IntPtr.Zero;
+        private IntPtr m_iPopWin = IntPtr.Zero;
+        private string defaultColor = "0";
+
         public Form1()
         {
+            this.Visible = false;
             InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //init container 1
+            this.splitContainer1.Visible = false;
             this.splitContainer1.Panel2MinSize = 0;
             toolStripButton1_Click(null, null);
-
-            m_nodes["Servers"] = new TreeNode("Servers");
+            //init container 2
+            this.splitContainer2.Panel2Collapsed = true;
+            changeSplitPanel2();
+            //init server node
+            m_rootNode = new TreeNode("Servers");
+            m_nodes["Servers"] = m_rootNode;
             this.treeView1.Nodes.Add((TreeNode)m_nodes["Servers"]);
-
             loadServer();
+            //init short key
             loadKey();
             reloadKeyButton();
+            //start
+            this.Visible = true;
+            Thread.Sleep(3);
+            this.splitContainer1.Visible = true;
+            this.panel3.Visible = true;
+            this.panel4.Visible = true;
         }
         
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -74,69 +106,12 @@ namespace CPShell
                 this.splitContainer1.Panel2MinSize = 0;
                 this.splitContainer1.SplitterDistance = this.Width + 10;
             }
+            Form1_Resize(null, null);
         }
 
-        private void layoutButton_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                int index = 0;
-                int count = m_window.Keys.Count;
-                int width = 0;
-                int height = 0;
-                switch (count)
-                {
-                    case 2:
-                        width = this.Width - this.treeView1.Width - 10;
-                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
-                        foreach (string key1 in m_window.Keys)
-                        {
-                            WindowConnection windowData = (WindowConnection)m_window[key1];
-                            ShowWindow(windowData.hWnd, 1);
-                            MoveWindow(windowData.hWnd, 0, index * height, width, height, true);                            
-                            index++;
-                        }
-                        break;
-                    case 3:
-                        width = (this.Width - this.treeView1.Width - 10)/2;
-                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
-                        foreach (string key1 in m_window.Keys)
-                        {
-                            WindowConnection windowData = (WindowConnection)m_window[key1];
-                            ShowWindow(windowData.hWnd, 1);
-                            MoveWindow(windowData.hWnd, index % 2 * width, index / 2 * height, (index / 2 + 1) * width, height, true);                                                       
-                            index++;
-                        }
-                        break;
-                    case 4:
-                        width = (this.Width - this.treeView1.Width - 10)/2;
-                        height = (this.Height - this.toolStrip1.Height - this.tabControl1.Height - 28) / 2;
-                        foreach (string key1 in m_window.Keys)
-                        {
-                            WindowConnection windowData = (WindowConnection)m_window[key1];
-                            ShowWindow(windowData.hWnd, 1);
-                            MoveWindow(windowData.hWnd, index % 2 * width, index / 2 * height, width, height, true);                                                       
-                            index++;
-                        }
-                        break;
-                    default:
-                        foreach (string key1 in m_window.Keys)
-                        {
-                            WindowConnection windowData = (WindowConnection)m_window[key1];
-                            ShowWindow(windowData.hWnd, 1);
-                        }
-                        break;
-                }             
-
-            }
-            catch (Exception exp)
-            {
-            }
-        }
 
         #region Key
-        private ArrayList m_quickDatas = new ArrayList();
-        private int m_keyButtonIndex = 0;
+
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             QuickForm quickForm = new QuickForm(m_quickDatas);
@@ -154,7 +129,7 @@ namespace CPShell
 
         private void reloadKeyButton()
         {
-            while (this.toolStrip1.Items.Count > 5)
+            while (this.toolStrip1.Items.Count > 7)
             {
                 this.toolStrip1.Items.RemoveAt(this.toolStrip1.Items.Count - 1);
             }
@@ -201,8 +176,18 @@ namespace CPShell
                     int keyCode = 111 + index;
                     SendMessage(m_lastWin, WM_KEYDOWN, keyCode, 0);
                     SendMessage(m_lastWin, WM_KEYUP, keyCode, 0);
-                    SetForegroundWindow(m_lastWin);
                 }
+                else
+                {
+                    string line = data.data;
+                    for (int i = 0; i < line.Length; i++)
+                    {
+                        char c = line[i];
+                        SendMessage(m_lastWin, WM_CHAR, c, 0);
+                        Thread.Sleep(30);
+                    }
+                }
+                SetForegroundWindow(m_lastWin);
             }
         }
 
@@ -220,7 +205,11 @@ namespace CPShell
                 StringBuilder keyData = new StringBuilder();
                 while ((input = reader.ReadLine()) != null)
                 {
-                    if (input.StartsWith("["))
+                    if (input.StartsWith("[DEFAULT-COLOR="))
+                    {
+                        defaultColor = input.Replace("[DEFAULT-COLOR=", "").Replace("]", "");
+                    }
+                    else if (input.StartsWith("["))
                     {
                         if (keyword != "")
                         {
@@ -250,6 +239,7 @@ namespace CPShell
         private void saveKey()
         {
             StreamWriter writer = new StreamWriter("config.ini", false, Encoding.GetEncoding("gb2312"));
+            writer.WriteLine("[DEFAULT-COLOR=" + defaultColor + "]");
             for(int i=0;i < m_quickDatas.Count;i++)
             {
                 QuickData quickData = (QuickData)(m_quickDatas[i]);
@@ -262,7 +252,7 @@ namespace CPShell
                 {
                     writer.Write(quickData.data.Trim());
                 }                
-            }
+            }            
             writer.Close();
         }
 
@@ -270,48 +260,121 @@ namespace CPShell
         #endregion
 
         #region Server
-        private Hashtable m_nodes = new Hashtable();
-        private Hashtable m_server = new Hashtable();
-
+        
         private void loadServer()
         {
             m_server = loadConfig("server.ini");
             getParent("Default");
+            ArrayList parentNames = new ArrayList();
+            Hashtable serverFolder = new Hashtable();
+            serverFolder["Default"] = new ArrayList();
             foreach (string key in m_server.Keys)
             {
                 ConnectionData puttyData = (ConnectionData)m_server[key];
-                if (puttyData.parent == null || puttyData.parent == "")
+                if (puttyData.parent != "Default" && parentNames.IndexOf(puttyData.parent) == -1)
                 {
-                    puttyData.parent = "Default";
+                    parentNames.Add(puttyData.parent);
+                    serverFolder[puttyData.parent] = new ArrayList();
                 }
-                TreeNode parent = getParent(puttyData.parent);
-                parent.Nodes.Add(puttyData.name);
+                ArrayList serverList = (ArrayList)serverFolder[puttyData.parent];
+                serverList.Add(puttyData);
             }
+            parentNames.Sort();
+            parentNames.Insert(0, "Default");
+            //sort
+            for (int i = 0; i < parentNames.Count; i++)
+            {
+                string parentName = (string)parentNames[i];
+                ArrayList serverList = (ArrayList)serverFolder[parentName];
+                for (int c1 = 0; c1 < serverList.Count - 1; c1++)
+                {
+                    for (int c2 = c1; c2 < serverList.Count; c2++)
+                    {
+                        ConnectionData data1 = (ConnectionData)serverList[c1];
+                        ConnectionData data2 = (ConnectionData)serverList[c2];
+                        if (data1.name.CompareTo(data2.name) > 0)
+                        {
+                            serverList[c1] = data2;
+                            serverList[c2] = data1;
+                        }
+                    }
+                }
+                //add
+                for (int j = 0; j < serverList.Count; j++)
+                {
+                    ConnectionData puttyData = (ConnectionData)serverList[j];
+                    TreeNode parent = getParent(puttyData.parent);
+                    parent.Nodes.Add(puttyData.name);
+                }
+            }
+
             this.treeView1.SelectedNode = (TreeNode)m_nodes["Servers"];
             this.treeView1.ExpandAll();
         }
 
         private void saveConfig(Hashtable obj, string dataFile)
         {
-            FileStream stream = new FileStream(dataFile, FileMode.Create, FileAccess.Write, FileShare.None);
-            BinaryFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, obj);
+            StreamWriter stream = new StreamWriter(dataFile, false, Encoding.GetEncoding("gb2312"));
+            foreach (string key in obj.Keys)
+            {
+                ConnectionData data = (ConnectionData)obj[key];
+                stream.WriteLine(data);
+            }
             stream.Close();
         }
 
         private Hashtable loadConfig(string dataFile)
         {
-            Hashtable obj = null;
+            Hashtable obj = new Hashtable();
             try
             {
-                FileStream readstream = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.Read);
-                BinaryFormatter formatter = new BinaryFormatter();
-                obj = (Hashtable)formatter.Deserialize(readstream);
-                readstream.Close();
+                StreamReader reader = new StreamReader(dataFile, Encoding.GetEncoding("gb2312"));
+                ConnectionData data = new ConnectionData();
+                string input;
+                while ((input = reader.ReadLine()) != null)
+                {
+                    int find = input.IndexOf("=");
+                    if (find == -1)
+                    {
+                        continue;
+                    }
+                    string key = input.Substring(0, find);
+                    string value = input.Substring(find + 1, input.Length - (find + 1));
+                    if (key == "name")
+                    {
+                        if (data.name != "")
+                        {
+                            if (data.parent == "")
+                            {
+                                data.parent = "Default";
+                            }
+                            obj[data.name] = data;
+                        }
+                        data = new ConnectionData();
+                        data.name = value;
+                    }
+                    else if (key == "command")
+                    {
+                        data.command = value.Replace("[ENTER]", "\r\n");
+                    }
+                    else
+                    {
+                        data.GetType().GetField(key).SetValue(data, value);
+                    }
+                }
+                if (data.name != "")
+                {
+                    if (data.parent == "")
+                    {
+                        data.parent = "Default";
+                    }
+                    obj[data.name] = data;
+                }
+                reader.Close();
             }
-            catch (Exception)
+            catch (Exception exp)
             {
-                obj = new Hashtable();
+                Console.WriteLine(exp.Message);
             }
             return obj;
         }
@@ -334,6 +397,7 @@ namespace CPShell
             puttyData.quickType = connection.c_scriptType.Text;
             puttyData.command = connection.c_command.Text;
             puttyData.waitTime = connection.c_waitTime.Text;
+            puttyData.color = connection.c_color.SelectedIndex + "";
             return puttyData;
         }
 
@@ -368,10 +432,14 @@ namespace CPShell
 
         private void addNewServer_Click(object sender, EventArgs e)
         {
-            ConnectionForm connection = new ConnectionForm((TreeNode)m_nodes["Servers"], m_quickDatas);
+            ConnectionForm connection = new ConnectionForm((TreeNode)m_nodes["Servers"], m_quickDatas, m_server);
             if (connection.ShowDialog() == DialogResult.OK)
             {
                 ConnectionData puttyData = Dlg2Data(connection);
+                if (m_server.ContainsKey(puttyData.name))
+                {
+                    removeServer(puttyData.name, false);
+                }
                 m_server[puttyData.name] = puttyData;
 
                 TreeNode temp = new TreeNode(puttyData.name);
@@ -383,20 +451,67 @@ namespace CPShell
             }
         }
 
+        private void removeServer(string name, bool save)
+        {
+            ConnectionData puttyData = (ConnectionData)m_server[name];
+            TreeNode temp = getNode(puttyData.parent, puttyData.name);
+            if (temp != null)
+            {
+                m_server.Remove(puttyData.name);
+                TreeNode parent = getParent(puttyData.parent);
+                parent.Nodes.Remove(temp);
+                if (save)
+                {
+                    saveConfig(m_server, "server.ini");
+                }
+            }
+        }
+
         private void deleteServer_Click(object sender, EventArgs e)
         {
-            TreeNode node = this.treeView1.SelectedNode;
-            if (node != null)
+            try
             {
-                ConnectionData puttyData = (ConnectionData)m_server[node.Text];
-                TreeNode temp = getNode(puttyData.parent, puttyData.name);
-                if (temp != null)
+                TreeNode node = this.treeView1.SelectedNode;
+                if (node != null)
                 {
-                    m_server.Remove(puttyData.name);
-                    TreeNode parent = getParent(puttyData.parent);
-                    parent.Nodes.Remove(temp);
-                    saveConfig(m_server, "server.ini");
-                }                
+                    if (node == m_rootNode || node.Text == "Servers")
+                    {
+                        return;
+                    }
+
+                    if (node.Parent == m_rootNode)
+                    {
+                        DialogResult result = MessageBox.Show(
+                            "Delete all node in " + node.Text + "?", "Confirm", MessageBoxButtons.OKCancel);
+                        if (result == System.Windows.Forms.DialogResult.Cancel)
+                        {
+                            return;
+                        }
+
+                        ArrayList list = new ArrayList();
+                        foreach (TreeNode childNode in node.Nodes)
+                        {
+                            list.Add(childNode.Text);
+                        }
+                        foreach (string name in list)
+                        {
+                            removeServer(name, false);
+                        }
+                        saveConfig(m_server, "server.ini");
+                        if (node.Text != "Default")
+                        {
+                            node.Remove();
+                        }
+                    }
+                    else
+                    {
+                        removeServer(node.Text, true);                        
+                    }
+                }
+            }
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
             }
         }
 
@@ -410,19 +525,22 @@ namespace CPShell
                 {
                     return;
                 }
-                ConnectionForm connection = new ConnectionForm((TreeNode)m_nodes["Servers"], m_quickDatas);
+                ConnectionForm connection = new ConnectionForm((TreeNode)m_nodes["Servers"], m_quickDatas, m_server);
                 connection.setData(puttyData);
                 string oldParent = puttyData.parent;
                 string oldName = puttyData.name;
                 if (connection.ShowDialog() == DialogResult.OK)
                 {
-                    puttyData = Dlg2Data(connection);
-                    m_server[puttyData.name] = puttyData;
-                    saveConfig(m_server, "server.ini");
-                    
+                    puttyData = Dlg2Data(connection);                    
                     if (oldName != puttyData.name)
                     {
                         //改名新建
+                        if (m_server.ContainsKey(puttyData.name))
+                        {
+                            removeServer(puttyData.name, false);
+                        }
+                        m_server[puttyData.name] = puttyData;
+                        saveConfig(m_server, "server.ini");
                         TreeNode temp = new TreeNode(puttyData.name);
                         TreeNode parentNode = getParent(puttyData.parent);
                         parentNode.Nodes.Add(temp);
@@ -431,6 +549,8 @@ namespace CPShell
                     else
                     {
                         //改组
+                        m_server[puttyData.name] = puttyData;
+                        saveConfig(m_server, "server.ini");
                         if (oldParent != puttyData.parent)
                         {
                             TreeNode oldParentNode = getParent(oldParent);
@@ -448,39 +568,45 @@ namespace CPShell
         #endregion
 
         #region Windows
-        private Hashtable m_window = new Hashtable();
-        private int m_windowIndex = 0;
-
+        
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
-            WindowConnection win = getLastWindow();
-            string param = "";
-            if (win != null)
-            {                
-                if (win.connection.password.Trim() != "")
+            try
+            {
+                WindowConnection win = getLastWindow();
+                string param = "";
+                if (win != null)
                 {
-                    param = String.Format("scp://{0}:\"{1}\"@{2}:{3}",
-                        win.connection.username,
-                        win.connection.password,
-                        win.connection.ip,
-                        win.connection.port
-                        );
+                    if (win.connection.password.Trim() != "")
+                    {
+                        param = String.Format("scp://{0}:\"{1}\"@{2}:{3}",
+                            win.connection.username,
+                            win.connection.password,
+                            win.connection.ip,
+                            win.connection.port
+                            );
+                    }
+                    else
+                    {
+                        param = String.Format("scp://{0}@{1}:{2}",
+                            win.connection.username,
+                            win.connection.ip,
+                            win.connection.port
+                            );
+                    }
+                    if (win.connection.keyfile.Trim() != "")
+                    {
+                        param = param + " /privatekey=" + win.connection.keyfile;
+                    }
+                    string installPath = @"WinSCP.exe";
+                    Process process = Process.Start(installPath, param);
                 }
-                else
-                {
-                    param = String.Format("scp://{0}@{1}:{2}",
-                        win.connection.username,
-                        win.connection.ip,
-                        win.connection.port
-                        );
-                }
-                if (win.connection.keyfile.Trim() != "")
-                {
-                    param = param + " /privatekey=" + win.connection.keyfile;
-                }
-                string installPath = @"WinSCP.exe";
-                Process process = Process.Start(installPath, param);
             }
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
+            }
+            
         }
 
         private void createNewConnection(ConnectionData puttyData)
@@ -499,6 +625,25 @@ namespace CPShell
             {
                 param = param + " -i " + puttyData.keyfile;
             }
+            try
+            {
+                int colorIndex = Convert.ToInt32(puttyData.color);
+                if (colorIndex > 1)
+                {
+                    param = param + " -color " + (colorIndex - 1);
+                }
+                else if (colorIndex == 0)
+                {
+                    colorIndex = Convert.ToInt32(defaultColor);
+                    if (colorIndex > 0)
+                    {
+                        param = param + " -color " + (colorIndex - 1);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
 
             string installPath = @"putty.exe";
             Process process = Process.Start(installPath, param);
@@ -506,7 +651,33 @@ namespace CPShell
 
             // 嵌入到parentHandle指定的句柄中
             IntPtr appWin = process.MainWindowHandle;
-            SetParent(appWin, this.panel2.Handle);
+            string panel = "";
+            if (this.splitContainer2.Panel2Collapsed)
+            {
+                SetParent(appWin, this.splitContainer2.Panel1.Handle);
+                panel = "panel1";
+            }
+            else
+            {
+                WindowConnection lastConnection = this.getLastWindow();
+                if (lastConnection == null)
+                {
+                    panel = "panel1";
+                }
+                else
+                {
+                    panel = lastConnection.panel;
+                }
+                if (panel == "panel1")
+                {
+                    SetParent(appWin, this.splitContainer2.Panel1.Handle);
+                }
+                else
+                {
+                    SetParent(appWin, this.splitContainer2.Panel2.Handle);
+                }                
+            }            
+
             MoveWindow(appWin, 0, 0, 1024, 600, true);
             ShowWindow(appWin, 3);
 
@@ -522,7 +693,7 @@ namespace CPShell
             tabPage.UseVisualStyleBackColor = true;
             this.tabControl1.TabPages.Add(tabPage);
 
-            WindowConnection winConnection = new WindowConnection(windowName, puttyData, appWin, tabPage);
+            WindowConnection winConnection = new WindowConnection(windowName, puttyData, appWin, tabPage, panel);
             m_window[windowName] = winConnection;
             m_lastWin = appWin;
 
@@ -535,6 +706,7 @@ namespace CPShell
             {
                 AfterLogin after = new AfterLogin(appWin,
                     puttyData.quickType, 
+                    null,
                     this.m_quickDatas, 
                     puttyData.waitTime);
                 Thread nonParameterThread = new Thread(new ThreadStart(after.run));
@@ -543,10 +715,141 @@ namespace CPShell
             else if (puttyData.command != null && puttyData.command.Trim() != "")
             {
                 AfterLogin after = new AfterLogin(appWin,
+                    null,
                     puttyData.command, 
+                    this.m_quickDatas,
                     puttyData.waitTime);
                 Thread nonParameterThread = new Thread(new ThreadStart(after.run));
                 nonParameterThread.Start();
+            }
+        }
+
+        private void changeSplitPanel2()
+        {
+            if (this.splitContainer2.Orientation == Orientation.Vertical)
+            {
+                //ver -> h
+                this.splitContainer2.Orientation = Orientation.Horizontal;
+                this.splitContainer2.SplitterDistance = this.splitContainer2.Height / 2;
+            }
+            else
+            {
+                //h->ver
+                this.splitContainer2.Orientation = Orientation.Vertical;
+                this.splitContainer2.SplitterDistance = this.splitContainer2.Width / 2;
+            }
+        }
+
+        private void layoutButton_Click(object sender, EventArgs e)
+        {
+            if (!isPanel2Blank())
+            {
+                changeSplitPanel2();
+                resizeConnection();
+            }
+            else
+            {
+                if (m_window.Count > 1)
+                {
+                    splitToolStripMenuItem_Click(null, null);
+                }
+            }
+        }
+
+        private void resizeConnection()
+        {
+            this.splitContainer2.Visible = false;
+            try
+            {
+                ArrayList keyList = new ArrayList();
+                foreach (string key1 in m_window.Keys)
+                {
+                    keyList.Add(key1);
+                }
+                foreach (string key in keyList)
+                {
+                    WindowConnection winConnection = (WindowConnection)m_window[key];
+                    if (IsWindow(winConnection.hWnd) != 0)
+                    {
+                        ShowWindow(winConnection.hWnd, 1);
+                        ShowWindow(winConnection.hWnd, 3);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+            this.splitContainer2.Visible = true;
+        }
+
+        private bool isPanel2Blank()
+        {
+            return isOnePanelBlank("", "panel2");
+        }
+
+        private bool isOnePanelBlank(string panel1, string panel2)
+        {
+            bool panel1Blank = true;
+            bool panel2Blank = true;
+            try
+            {
+                ArrayList keyList = new ArrayList();
+                foreach (string key1 in m_window.Keys)
+                {
+                    keyList.Add(key1);
+                }
+                foreach (string key in keyList)
+                {
+                    WindowConnection winConnection = (WindowConnection)m_window[key];
+                    if (winConnection.panel == panel1)
+                    {
+                        panel1Blank = false;
+                    }
+                    else if (winConnection.panel == panel2)
+                    {
+                        panel2Blank = false;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+            if (panel1 == "")
+            {
+                return panel2Blank;
+            }
+            else if (panel2 == "")
+            {
+                return panel1Blank;
+            }
+            if (panel1Blank || panel2Blank)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private void movePanel2ToPanel1()
+        {
+            try
+            {
+                ArrayList keyList = new ArrayList();
+                foreach (string key1 in m_window.Keys)
+                {
+                    keyList.Add(key1);
+                }
+                foreach (string key in keyList)
+                {
+                    WindowConnection winConnection = (WindowConnection)m_window[key];
+                    if (winConnection.panel == "panel2")
+                    {
+                        SetParent(winConnection.hWnd, this.splitContainer2.Panel1.Handle);
+                        winConnection.panel = "panel1";
+                    }
+                }
+            }
+            catch (Exception)
+            {
             }
         }
 
@@ -591,7 +894,6 @@ namespace CPShell
             }
         }
 
-        IntPtr m_lastWin = IntPtr.Zero;
         private void timer1_Tick(object sender, EventArgs e)
         {
             IntPtr active = GetForegroundWindow();
@@ -618,6 +920,45 @@ namespace CPShell
                     m_window.Remove(key);
                 }
             }
+            if (!this.splitContainer2.Panel2Collapsed)
+            {
+                if (isOnePanelBlank("panel1", "panel2"))
+                {
+                    movePanel2ToPanel1();
+                    this.splitContainer2.Panel2Collapsed = true;
+                    resizeConnection();
+                }
+            }
+        }
+
+
+        private void splitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            WindowConnection winConnection = getLastWindow();
+            if (winConnection != null)
+            {
+                if (this.splitContainer2.Panel2Collapsed)
+                {
+                    //unv-> ver                
+                    this.splitContainer2.Panel2Collapsed = false;
+                }
+                try
+                {
+                    if (winConnection.panel == "panel1")
+                    {
+                        SetParent(winConnection.hWnd, this.splitContainer2.Panel2.Handle);
+                        winConnection.panel = "panel2";
+                    }
+                    else
+                    {
+                        SetParent(winConnection.hWnd, this.splitContainer2.Panel1.Handle);
+                        winConnection.panel = "panel1";
+                    }
+                    resizeConnection();
+                }
+                catch (Exception exp) {
+                }
+            }
         }
 
         private void tabControl1_Click(object sender, EventArgs e)
@@ -634,6 +975,140 @@ namespace CPShell
         }
         #endregion
 
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            resizeConnection();
+        }
+
+        private ConnectionData getQuickData()
+        {
+            ConnectionData puttyData = new ConnectionData();
+            puttyData.name = txtIp.Text;
+            puttyData.ip = txtIp.Text;
+            puttyData.port = txtPort.Text;
+            if (puttyData.port == "23")
+            {
+                puttyData.protocol = "TELNET";
+            }
+            else
+            {
+                puttyData.protocol = "SSH";
+            }
+            puttyData.username = txtUser.Text;
+            puttyData.password = txtPassword.Text;
+            puttyData.keyfile = "ssh.ppk";
+            puttyData.parent = "Default";
+            puttyData.quickType = "";
+            puttyData.command = "";
+            puttyData.waitTime = "2000";            
+            return puttyData;
+        }
+
+        private void btnSaveQuick_Click(object sender, EventArgs e)
+        {
+            ConnectionData puttyData = getQuickData();
+            if (puttyData.ip == "")
+            {
+                return;
+            }
+            m_server[puttyData.name] = puttyData;
+            bool find = false;
+            TreeNode temp = new TreeNode(puttyData.name);
+            TreeNode parent = getParent(puttyData.parent);
+            for (int i = 0; i < parent.Nodes.Count; i++)
+            {
+                if (parent.Nodes[i].Text == txtIp.Text)
+                {
+                    find = true;
+                }
+            }
+            if (!find)
+            {
+                parent.Nodes.Add(temp);
+                parent.ExpandAll();
+            }
+            saveConfig(m_server, "server.ini");
+        }
+
+        private void btnGo_Click(object sender, EventArgs e)
+        {
+            ConnectionData puttyData = getQuickData();
+            if (puttyData.ip == "")
+            {
+                return;
+            }
+            createNewConnection(puttyData);
+        }
+
+        private void closeActive(object sender, EventArgs e)
+        {
+            WindowConnection windowdata = (WindowConnection)m_window[tabControl1.TabPages[tabControl1.SelectedIndex].Text];
+            if (windowdata != null)
+            {
+                SendMessage(windowdata.hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            }
+        }
+
+        private void copyActive(object sender, EventArgs e)
+        {
+
+            WindowConnection windowdata = (WindowConnection)m_window[tabControl1.TabPages[tabControl1.SelectedIndex].Text];
+            if (windowdata != null)
+            {
+                createNewConnection(windowdata.connection);
+            }
+        }
+
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+            if (m_iPopWin != IntPtr.Zero)
+            {
+                if (IsWindow(m_iPopWin) == 0)
+                {
+                    m_iPopWin = IntPtr.Zero;
+                }
+            }
+            try
+            {
+                if (m_iPopWin != IntPtr.Zero)
+                {
+                    SetForegroundWindow(m_iPopWin);
+                }
+                else
+                {
+                    string installPath = @"ipop.exe";
+                    Process process = Process.Start(installPath);
+                    process.WaitForInputIdle();
+                    m_iPopWin = process.MainWindowHandle;
+                }                
+            }
+            catch (Exception exp)
+            {
+                MessageBox.Show(exp.Message);
+            }
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            ColorSelectForm colorForm = new ColorSelectForm();
+            colorForm.setColor(defaultColor);
+            DialogResult result = colorForm.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                defaultColor = colorForm.selectColor;
+                saveKey();
+            }
+        }
+
+        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            resizeConnection();
+        }
+
+        private void winscpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            toolStripButton2_Click(null, null);
+        }
 
     }
 }
