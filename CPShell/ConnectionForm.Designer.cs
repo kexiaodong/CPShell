@@ -51,8 +51,6 @@
             this.c_scriptType = new System.Windows.Forms.ComboBox();
             this.label10 = new System.Windows.Forms.Label();
             this.c_waitTime = new System.Windows.Forms.TextBox();
-            this.label11 = new System.Windows.Forms.Label();
-            this.c_color = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // label1
@@ -217,7 +215,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(14, 225);
+            this.label9.Location = new System.Drawing.Point(14, 200);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(53, 12);
             this.label9.TabIndex = 0;
@@ -225,18 +223,18 @@
             // 
             // c_command
             // 
-            this.c_command.Location = new System.Drawing.Point(98, 269);
+            this.c_command.Location = new System.Drawing.Point(98, 249);
             this.c_command.Multiline = true;
             this.c_command.Name = "c_command";
             this.c_command.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.c_command.Size = new System.Drawing.Size(202, 61);
+            this.c_command.Size = new System.Drawing.Size(202, 81);
             this.c_command.TabIndex = 24;
             // 
             // c_scriptType
             // 
             this.c_scriptType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.c_scriptType.FormattingEnabled = true;
-            this.c_scriptType.Location = new System.Drawing.Point(94, 224);
+            this.c_scriptType.Location = new System.Drawing.Point(94, 199);
             this.c_scriptType.Name = "c_scriptType";
             this.c_scriptType.Size = new System.Drawing.Size(202, 20);
             this.c_scriptType.TabIndex = 22;
@@ -244,7 +242,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(96, 249);
+            this.label10.Location = new System.Drawing.Point(96, 224);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(101, 12);
             this.label10.TabIndex = 0;
@@ -252,35 +250,11 @@
             // 
             // c_waitTime
             // 
-            this.c_waitTime.Location = new System.Drawing.Point(217, 247);
+            this.c_waitTime.Location = new System.Drawing.Point(217, 222);
             this.c_waitTime.Name = "c_waitTime";
             this.c_waitTime.Size = new System.Drawing.Size(79, 21);
             this.c_waitTime.TabIndex = 23;
             this.c_waitTime.Text = "5000";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(14, 201);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(35, 12);
-            this.label11.TabIndex = 0;
-            this.label11.Text = "Color";
-            // 
-            // c_color
-            // 
-            this.c_color.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.c_color.FormattingEnabled = true;
-            this.c_color.Items.AddRange(new object[] {
-            "Default",
-            "Black",
-            "White",
-            "Yellow",
-            "Green"});
-            this.c_color.Location = new System.Drawing.Point(94, 198);
-            this.c_color.Name = "c_color";
-            this.c_color.Size = new System.Drawing.Size(202, 20);
-            this.c_color.TabIndex = 16;
             // 
             // ConnectionForm
             // 
@@ -291,7 +265,6 @@
             this.Controls.Add(this.c_command);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.c_scriptType);
-            this.Controls.Add(this.c_color);
             this.Controls.Add(this.c_parent);
             this.Controls.Add(this.radioTelnet);
             this.Controls.Add(this.radioSSH);
@@ -308,7 +281,6 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.c_ip);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label11);
             this.Controls.Add(this.c_name);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label1);
@@ -348,7 +320,5 @@
         public System.Windows.Forms.ComboBox c_scriptType;
         private System.Windows.Forms.Label label10;
         public System.Windows.Forms.TextBox c_waitTime;
-        private System.Windows.Forms.Label label11;
-        public System.Windows.Forms.ComboBox c_color;
     }
 }

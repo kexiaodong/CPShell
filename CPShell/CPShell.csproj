@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CPShell</RootNamespace>
     <AssemblyName>CPShell</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>cps.ico</ApplicationIcon>
@@ -51,12 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AfterLogin.cs" />
-    <Compile Include="ColorSelectForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ColorSelectForm.Designer.cs">
-      <DependentUpon>ColorSelectForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="ConnectionForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,9 +74,6 @@
     <Compile Include="QuickForm.Designer.cs">
       <DependentUpon>QuickForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="ColorSelectForm.resx">
-      <DependentUpon>ColorSelectForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="ConnectionForm.resx">
       <DependentUpon>ConnectionForm.cs</DependentUpon>
     </EmbeddedResource>

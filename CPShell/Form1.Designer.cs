@@ -35,12 +35,11 @@
             this.layoutButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.terminalContainers = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -72,8 +71,8 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
-            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.terminalContainers)).BeginInit();
+            this.terminalContainers.SuspendLayout();
             this.panel1.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
             this.panel4.SuspendLayout();
@@ -88,7 +87,6 @@
             this.layoutButton,
             this.toolStripButton2,
             this.toolStripButton4,
-            this.toolStripButton5,
             this.toolStripSeparator1,
             this.toolStripButton3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
@@ -141,17 +139,6 @@
             this.toolStripButton4.Click += new System.EventHandler(this.toolStripButton4_Click);
             this.toolStripButton4.MouseMove += new System.Windows.Forms.MouseEventHandler(this.tempButton_MouseMove);
             // 
-            // toolStripButton5
-            // 
-            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
-            this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton5.Name = "toolStripButton5";
-            this.toolStripButton5.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton5.Text = "color";
-            this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
-            this.toolStripButton5.MouseMove += new System.Windows.Forms.MouseEventHandler(this.tempButton_MouseMove);
-            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -189,26 +176,26 @@
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.splitContainer2);
+            this.panel2.Controls.Add(this.terminalContainers);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(0, 24);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(882, 398);
             this.panel2.TabIndex = 2;
             // 
-            // splitContainer2
+            // terminalContainers
             // 
-            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer2.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer2.Name = "splitContainer2";
-            this.splitContainer2.Panel1MinSize = 0;
-            this.splitContainer2.Panel2MinSize = 0;
-            this.splitContainer2.Size = new System.Drawing.Size(882, 398);
-            this.splitContainer2.SplitterDistance = 395;
-            this.splitContainer2.SplitterWidth = 1;
-            this.splitContainer2.TabIndex = 0;
-            this.splitContainer2.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer2_SplitterMoved);
+            this.terminalContainers.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.terminalContainers.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.terminalContainers.Location = new System.Drawing.Point(0, 0);
+            this.terminalContainers.Name = "terminalContainers";
+            this.terminalContainers.Panel1MinSize = 0;
+            this.terminalContainers.Panel2MinSize = 0;
+            this.terminalContainers.Size = new System.Drawing.Size(882, 398);
+            this.terminalContainers.SplitterDistance = 395;
+            this.terminalContainers.SplitterWidth = 1;
+            this.terminalContainers.TabIndex = 0;
+            this.terminalContainers.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer2_SplitterMoved);
             // 
             // panel1
             // 
@@ -239,33 +226,33 @@
             this.splitToolStripMenuItem,
             this.winscpToolStripMenuItem});
             this.contextMenuStrip2.Name = "contextMenuStrip2";
-            this.contextMenuStrip2.Size = new System.Drawing.Size(125, 92);
+            this.contextMenuStrip2.Size = new System.Drawing.Size(119, 92);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
             this.copyToolStripMenuItem.Text = "&Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyActive);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.closeToolStripMenuItem.Text = "&Terminate";
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.closeToolStripMenuItem.Text = "&Exit";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeActive);
             // 
             // splitToolStripMenuItem
             // 
             this.splitToolStripMenuItem.Name = "splitToolStripMenuItem";
-            this.splitToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.splitToolStripMenuItem.Text = "&Drift";
+            this.splitToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+            this.splitToolStripMenuItem.Text = "&Move";
             this.splitToolStripMenuItem.Click += new System.EventHandler(this.splitToolStripMenuItem_Click);
             // 
             // winscpToolStripMenuItem
             // 
             this.winscpToolStripMenuItem.Name = "winscpToolStripMenuItem";
-            this.winscpToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.winscpToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
             this.winscpToolStripMenuItem.Text = "&Winscp";
             this.winscpToolStripMenuItem.Click += new System.EventHandler(this.winscpToolStripMenuItem_Click);
             // 
@@ -296,26 +283,26 @@
             this.editServer,
             this.deleteServer});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(107, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(114, 70);
             // 
             // addNewServer
             // 
             this.addNewServer.Name = "addNewServer";
-            this.addNewServer.Size = new System.Drawing.Size(106, 22);
+            this.addNewServer.Size = new System.Drawing.Size(113, 22);
             this.addNewServer.Text = "&Add";
             this.addNewServer.Click += new System.EventHandler(this.addNewServer_Click);
             // 
             // editServer
             // 
             this.editServer.Name = "editServer";
-            this.editServer.Size = new System.Drawing.Size(106, 22);
+            this.editServer.Size = new System.Drawing.Size(113, 22);
             this.editServer.Text = "&Edit";
             this.editServer.Click += new System.EventHandler(this.editServer_Click);
             // 
             // deleteServer
             // 
             this.deleteServer.Name = "deleteServer";
-            this.deleteServer.Size = new System.Drawing.Size(106, 22);
+            this.deleteServer.Size = new System.Drawing.Size(113, 22);
             this.deleteServer.Text = "&Delete";
             this.deleteServer.Click += new System.EventHandler(this.deleteServer_Click);
             // 
@@ -449,8 +436,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
-            this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.terminalContainers)).EndInit();
+            this.terminalContainers.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.contextMenuStrip2.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
@@ -481,7 +468,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.ToolStripButton layoutButton;
         private System.Windows.Forms.ToolStripButton toolStripButton4;
-        private System.Windows.Forms.ToolStripButton toolStripButton5;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Button btnGo;
@@ -497,7 +483,7 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip2;
         private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
-        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.SplitContainer terminalContainers;
         private System.Windows.Forms.ToolStripMenuItem splitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem winscpToolStripMenuItem;
 

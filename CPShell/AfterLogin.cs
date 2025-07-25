@@ -47,21 +47,20 @@ namespace CPShell
             }
             if (index != -1)
             {
-                if (index <= 25)
-                {
-                    int keyCode = 111 + index;
-                    SendMessage(appWin, WM_KEYDOWN, keyCode, 0);
-                    SendMessage(appWin, WM_KEYUP, keyCode, 0);
-                }
-                else
-                {
-                    for (int i = 0; i < line.Length; i++)
-                    {
-                        char c = line[i];
-                        SendMessage(appWin, WM_CHAR, c, 0);
-                        Thread.Sleep(30);
-                    }
-                }
+				for (int i = 0; i < line.Length; i++)
+				{
+					char c = line[i];
+					if (c==13)
+					{
+						continue;
+					}
+					SendMessage(appWin, WM_CHAR, c, 0);
+					Thread.Sleep(30);
+					if (c==10)
+					{
+						Thread.Sleep(800);
+					}
+				}
             }
         }
 

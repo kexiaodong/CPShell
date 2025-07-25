@@ -29,7 +29,6 @@ namespace CPShell
                 c_scriptType.Items.Add(data.name);
             }
             c_scriptType.SelectedIndex = 0;
-            c_color.SelectedIndex = 0;
         }
 
         private void Connection_Load(object sender, EventArgs e)
@@ -79,15 +78,6 @@ namespace CPShell
             }
             c_command.Text = puttyData.command;
             c_waitTime.Text = puttyData.waitTime;
-            int selectIndex = Convert.ToInt32(puttyData.color);
-            try
-            {
-                c_color.SelectedIndex = selectIndex;
-            }
-            catch (Exception)
-            {
-                c_color.SelectedIndex = 0;
-            }
         }
 
         private void radioSSH_Click(object sender, EventArgs e)

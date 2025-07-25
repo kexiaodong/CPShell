@@ -76,7 +76,7 @@ namespace CPShell
             this.splitContainer1.Panel2MinSize = 0;
             toolStripButton1_Click(null, null);
             //init container 2
-            this.splitContainer2.Panel2Collapsed = true;
+            this.terminalContainers.Panel2Collapsed = true;
             changeSplitPanel2();
             //init server node
             m_rootNode = new TreeNode("Servers");
@@ -106,7 +106,7 @@ namespace CPShell
                 this.splitContainer1.Panel2MinSize = 0;
                 this.splitContainer1.SplitterDistance = this.Width + 10;
             }
-            Form1_Resize(null, null);
+            resizeConnection(true); 
         }
 
 
@@ -170,24 +170,9 @@ namespace CPShell
 
             if (m_lastWin != IntPtr.Zero)
             {
-                if (index <= 25)
-                {
-                    //让putty自己完成
-                    int keyCode = 111 + index;
-                    SendMessage(m_lastWin, WM_KEYDOWN, keyCode, 0);
-                    SendMessage(m_lastWin, WM_KEYUP, keyCode, 0);
-                }
-                else
-                {
-                    string line = data.data;
-                    for (int i = 0; i < line.Length; i++)
-                    {
-                        char c = line[i];
-                        SendMessage(m_lastWin, WM_CHAR, c, 0);
-                        Thread.Sleep(30);
-                    }
-                }
-                SetForegroundWindow(m_lastWin);
+                AfterLogin after = new AfterLogin(m_lastWin, data.name, null, this.m_quickDatas, null);
+                Thread nonParameterThread = new Thread(new ThreadStart(after.run));
+                nonParameterThread.Start();
             }
         }
 
@@ -251,8 +236,8 @@ namespace CPShell
                 else
                 {
                     writer.Write(quickData.data.Trim());
-                }                
-            }            
+                }
+            }
             writer.Close();
         }
 
@@ -260,7 +245,7 @@ namespace CPShell
         #endregion
 
         #region Server
-        
+
         private void loadServer()
         {
             m_server = loadConfig("server.ini");
@@ -359,7 +344,13 @@ namespace CPShell
                     }
                     else
                     {
-                        data.GetType().GetField(key).SetValue(data, value);
+                        try
+                        {
+                            data.GetType().GetField(key).SetValue(data, value);
+                        }
+                        catch (Exception e)
+                        {
+                        }
                     }
                 }
                 if (data.name != "")
@@ -397,7 +388,6 @@ namespace CPShell
             puttyData.quickType = connection.c_scriptType.Text;
             puttyData.command = connection.c_command.Text;
             puttyData.waitTime = connection.c_waitTime.Text;
-            puttyData.color = connection.c_color.SelectedIndex + "";
             return puttyData;
         }
 
@@ -505,7 +495,7 @@ namespace CPShell
                     }
                     else
                     {
-                        removeServer(node.Text, true);                        
+                        removeServer(node.Text, true);
                     }
                 }
             }
@@ -531,7 +521,7 @@ namespace CPShell
                 string oldName = puttyData.name;
                 if (connection.ShowDialog() == DialogResult.OK)
                 {
-                    puttyData = Dlg2Data(connection);                    
+                    puttyData = Dlg2Data(connection);
                     if (oldName != puttyData.name)
                     {
                         //改名新建
@@ -568,7 +558,7 @@ namespace CPShell
         #endregion
 
         #region Windows
-        
+
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
             try
@@ -606,7 +596,7 @@ namespace CPShell
             {
                 MessageBox.Show(exp.Message);
             }
-            
+
         }
 
         private void createNewConnection(ConnectionData puttyData)
@@ -625,36 +615,24 @@ namespace CPShell
             {
                 param = param + " -i " + puttyData.keyfile;
             }
-            try
-            {
-                int colorIndex = Convert.ToInt32(puttyData.color);
-                if (colorIndex > 1)
-                {
-                    param = param + " -color " + (colorIndex - 1);
-                }
-                else if (colorIndex == 0)
-                {
-                    colorIndex = Convert.ToInt32(defaultColor);
-                    if (colorIndex > 0)
-                    {
-                        param = param + " -color " + (colorIndex - 1);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
 
             string installPath = @"putty.exe";
+
             Process process = Process.Start(installPath, param);
             process.WaitForInputIdle();
 
-            // 嵌入到parentHandle指定的句柄中
             IntPtr appWin = process.MainWindowHandle;
-            string panel = "";
-            if (this.splitContainer2.Panel2Collapsed)
+            while (appWin == IntPtr.Zero)
             {
-                SetParent(appWin, this.splitContainer2.Panel1.Handle);
+                Thread.Sleep(10);
+                appWin = process.MainWindowHandle;
+            }
+            ShowWindow(appWin, 0);
+            IntPtr appParent;
+            string panel = "";
+            if (this.terminalContainers.Panel2Collapsed)
+            {
+                appParent = this.terminalContainers.Panel1.Handle;
                 panel = "panel1";
             }
             else
@@ -670,14 +648,15 @@ namespace CPShell
                 }
                 if (panel == "panel1")
                 {
-                    SetParent(appWin, this.splitContainer2.Panel1.Handle);
+                    appParent = this.terminalContainers.Panel1.Handle;
                 }
                 else
                 {
-                    SetParent(appWin, this.splitContainer2.Panel2.Handle);
-                }                
-            }            
-
+                    appParent = this.terminalContainers.Panel2.Handle;
+                }
+            }
+            SetParent(appWin, appParent);
+            ShowWindow(appWin, 0);
             MoveWindow(appWin, 0, 0, 1024, 600, true);
             ShowWindow(appWin, 3);
 
@@ -705,9 +684,9 @@ namespace CPShell
             if (puttyData.quickType != "Input Command")
             {
                 AfterLogin after = new AfterLogin(appWin,
-                    puttyData.quickType, 
+                    puttyData.quickType,
                     null,
-                    this.m_quickDatas, 
+                    this.m_quickDatas,
                     puttyData.waitTime);
                 Thread nonParameterThread = new Thread(new ThreadStart(after.run));
                 nonParameterThread.Start();
@@ -716,7 +695,7 @@ namespace CPShell
             {
                 AfterLogin after = new AfterLogin(appWin,
                     null,
-                    puttyData.command, 
+                    puttyData.command,
                     this.m_quickDatas,
                     puttyData.waitTime);
                 Thread nonParameterThread = new Thread(new ThreadStart(after.run));
@@ -726,17 +705,17 @@ namespace CPShell
 
         private void changeSplitPanel2()
         {
-            if (this.splitContainer2.Orientation == Orientation.Vertical)
+            if (this.terminalContainers.Orientation == Orientation.Vertical)
             {
                 //ver -> h
-                this.splitContainer2.Orientation = Orientation.Horizontal;
-                this.splitContainer2.SplitterDistance = this.splitContainer2.Height / 2;
+                this.terminalContainers.Orientation = Orientation.Horizontal;
+                this.terminalContainers.SplitterDistance = this.terminalContainers.Height / 2;
             }
             else
             {
                 //h->ver
-                this.splitContainer2.Orientation = Orientation.Vertical;
-                this.splitContainer2.SplitterDistance = this.splitContainer2.Width / 2;
+                this.terminalContainers.Orientation = Orientation.Vertical;
+                this.terminalContainers.SplitterDistance = this.terminalContainers.Width / 2;
             }
         }
 
@@ -745,7 +724,7 @@ namespace CPShell
             if (!isPanel2Blank())
             {
                 changeSplitPanel2();
-                resizeConnection();
+                resizeConnection(true);
             }
             else
             {
@@ -758,7 +737,12 @@ namespace CPShell
 
         private void resizeConnection()
         {
-            this.splitContainer2.Visible = false;
+            resizeConnection(false);
+        }
+
+        private void resizeConnection(bool setForground)
+        {
+            this.terminalContainers.Visible = false;
             try
             {
                 ArrayList keyList = new ArrayList();
@@ -779,7 +763,11 @@ namespace CPShell
             catch (Exception)
             {
             }
-            this.splitContainer2.Visible = true;
+            if (setForground)
+            {
+                SetForegroundWindow(m_lastWin);
+            }
+            this.terminalContainers.Visible = true;
         }
 
         private bool isPanel2Blank()
@@ -843,7 +831,7 @@ namespace CPShell
                     WindowConnection winConnection = (WindowConnection)m_window[key];
                     if (winConnection.panel == "panel2")
                     {
-                        SetParent(winConnection.hWnd, this.splitContainer2.Panel1.Handle);
+                        SetParent(winConnection.hWnd, this.terminalContainers.Panel1.Handle);
                         winConnection.panel = "panel1";
                     }
                 }
@@ -909,9 +897,9 @@ namespace CPShell
                 {
                     if (winConnection.hWnd != m_lastWin)
                     {
-                        m_lastWin = winConnection.hWnd;                       
+                        m_lastWin = winConnection.hWnd;
                     }
-                    tabControl1.SelectedTab = winConnection.tabPage; 
+                    tabControl1.SelectedTab = winConnection.tabPage;
                 }
                 else if (IsWindow(winConnection.hWnd) == 0)
                 {
@@ -920,13 +908,13 @@ namespace CPShell
                     m_window.Remove(key);
                 }
             }
-            if (!this.splitContainer2.Panel2Collapsed)
+            if (!this.terminalContainers.Panel2Collapsed)
             {
                 if (isOnePanelBlank("panel1", "panel2"))
                 {
                     movePanel2ToPanel1();
-                    this.splitContainer2.Panel2Collapsed = true;
-                    resizeConnection();
+                    this.terminalContainers.Panel2Collapsed = true;
+                    resizeConnection(true);
                 }
             }
         }
@@ -937,26 +925,27 @@ namespace CPShell
             WindowConnection winConnection = getLastWindow();
             if (winConnection != null)
             {
-                if (this.splitContainer2.Panel2Collapsed)
+                if (this.terminalContainers.Panel2Collapsed)
                 {
                     //unv-> ver                
-                    this.splitContainer2.Panel2Collapsed = false;
+                    this.terminalContainers.Panel2Collapsed = false;
                 }
                 try
                 {
                     if (winConnection.panel == "panel1")
                     {
-                        SetParent(winConnection.hWnd, this.splitContainer2.Panel2.Handle);
+                        SetParent(winConnection.hWnd, this.terminalContainers.Panel2.Handle);
                         winConnection.panel = "panel2";
                     }
                     else
                     {
-                        SetParent(winConnection.hWnd, this.splitContainer2.Panel1.Handle);
+                        SetParent(winConnection.hWnd, this.terminalContainers.Panel1.Handle);
                         winConnection.panel = "panel1";
                     }
-                    resizeConnection();
+                    resizeConnection(true);
                 }
-                catch (Exception exp) {
+                catch (Exception exp)
+                {
                 }
             }
         }
@@ -1000,7 +989,7 @@ namespace CPShell
             puttyData.parent = "Default";
             puttyData.quickType = "";
             puttyData.command = "";
-            puttyData.waitTime = "2000";            
+            puttyData.waitTime = "2000";
             return puttyData;
         }
 
@@ -1080,25 +1069,13 @@ namespace CPShell
                     Process process = Process.Start(installPath);
                     process.WaitForInputIdle();
                     m_iPopWin = process.MainWindowHandle;
-                }                
+                }
             }
             catch (Exception exp)
             {
                 MessageBox.Show(exp.Message);
             }
-        }
-
-        private void toolStripButton5_Click(object sender, EventArgs e)
-        {
-            ColorSelectForm colorForm = new ColorSelectForm();
-            colorForm.setColor(defaultColor);
-            DialogResult result = colorForm.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                defaultColor = colorForm.selectColor;
-                saveKey();
-            }
-        }
+        }        
 
         private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
         {
